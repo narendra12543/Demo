@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>View Bills | Nursery Mitra</title>
+  <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    /* [Your existing styles remain unchanged] */
+    /* ...copy from your original style section... */
+  </style>
+</head>
+<body>
+
+  <aside class="sidebar">
+    <h2>Billing Menu</h2>
+    <a th:href="@{/bills}">Create Bill</a>
+    <a th:href="@{/view-bills}">View Bill</a>
+    <a th:href="@{/}">Back to Home</a>
+  </aside>
+
+  <main class="main-content">
+    <h1>View Bills</h1>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Bill ID</th>
+          <th>Customer</th>
+          <th>Product</th>
+          <th>Qty</th>
+          <th>Rate (₹)</th>
+          <th>Total (₹)</th>
+          <th>Mode</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="billList">
+        <tr th:each="bill : ${bills}" th:id="'bill-' + ${bill.id}">
+          <td th:text="${bill.id}">001</td>
+          <td th:text="${bill.customer}">Tanmay</td>
+          <td th:text="${bill.product}">Rose Plant</td>
+          <td th:text="${bill.quantity}">2</td>
+          <td th:text="${bill.rate}">150</td>
+          <td th:text="${bill.total}">300</td>
+          <td th:text="${bill.mode}">UPI</td>
+          <td>
+            <button class="action-btn" th:attr="onclick='downloadBillPDF(\'bill-' + ${bill.id} + '\')'">Download PDF</button>
+            <button class="action-btn print" th:attr="onclick='printBill(\'bill-' + ${bill.id} + '\')'">Print</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+
+  <script>
+    // [Same JavaScript as original, unchanged]
+    async function downloadBillPDF(rowId) {
+      const { jsPDF } = window.jspdf;
+      const element = document.getElementById(rowId);
+      const clone = element.cloneNode(true);
+      const wrapper = document.createElement("table");
+      const thead = document.createElement("thead");
+      const thRow = document.createElement("tr");
+      const headers = ["Bill ID", "Customer", "Product", "Qty", "Rate (₹)", "Total (₹)", "Mode"];
+
+      headers.forEach(h => {
+        const th = document.createElement("th");
+        th.textContent = h;
+        th.style.border = "1px solid #ccc";
+        th.style.padding = "8px";
+        thRow.appendChild(th);
+      });
+
+      thead.appendChild(thRow);
+      wrapper.appendChild(thead);
+      wrapper.appendChild(clone);
+
+      wrapper.style.borderCollapse = "collapse";
+      wrapper.style.width = "100%";
+
+      const container = document.createElement("div");
+      container.appendChild(wrapper);
+      document.body.appendChild(container);
+
+      const canvas = await html2canvas(container);
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF();
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      pdf.addImage(imgData, 'PNG', 10, 10, pdfWidth - 20, pdfHeight);
+      pdf.save(`${rowId}.pdf`);
+      document.body.removeChild(container);
+    }
+
+    function printBill(rowId) {
+      const row = document.getElementById(rowId);
+      const headers = ["Bill ID", "Customer", "Product", "Qty", "Rate (₹)", "Total (₹)", "Mode"];
+      const cells = Array.from(row.children).slice(0, 7);
+      let printWindow = window.open('', '', 'height=600,width=800');
+      printWindow.document.write('<html><head><title>Print Bill</title>');
+      printWindow.document.write('<style>table{width:100%;border-collapse:collapse}th,td{border:1px solid #ccc;padding:10px;text-align:left}</style>');
+      printWindow.document.write('</head><body>');
+      printWindow.document.write('<h2>Nursery Mitra - Bill Details</h2>');
+      printWindow.document.write('<table><thead><tr>');
+      headers.forEach(h => printWindow.document.write(`<th>${h}</th>`));
+      printWindow.document.write('</tr></thead><tbody><tr>');
+      cells.forEach(c => printWindow.document.write(`<td>${c.innerText}</td>`));
+      printWindow.document.write('</tr></tbody></table>');
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+      printWindow.close();
+    }
+  </script>
+
+</body>
+</html>
