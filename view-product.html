@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>View Orders | Nursery Mitra</title>
+  <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet" />
+  <style>
+    /* [STYLE OMITTED FOR BREVITY: keep as-is from your code above] */
+  </style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <h2>Products Menu</h2>
+  <a th:href="@{/products}">Add new Product</a>
+  <a th:href="@{/view-product}">View Product</a>
+  <a th:href="@{/}">Back to Home</a>
+</aside>
+
+<main class="main-content">
+  <h1>All Orders</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Product Name</th>
+        <th>Price (₹)</th>
+        <th>Quantity</th>
+        <th colspan="2">Action</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr th:each="order : ${orders}">
+        <td th:text="${order.productName}">Product Name</td>
+        <td th:text="${order.price}">100</td>
+        <td th:text="${order.quantity}">3</td>
+        <td>
+          <a th:href="@{'/orders/edit/' + ${order.id}}">
+            <button class="btn">Edit</button>
+          </a>
+        </td>
+        <td>
+          <form th:action="@{'/orders/delete/' + ${order.id}}" method="post" th:onsubmit="return confirm('Are you sure?');">
+            <button class="btn">Delete</button>
+          </form>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</main>
+
+</body>
+</html>
